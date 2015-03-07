@@ -155,11 +155,18 @@ function Ball() {
             that.outOfBound = true;
         } else if (that.isMovingUp() && that.y - Ball.HEIGHT/2 < Paddle.HEIGHT) {
             // Chance for ball to collide with top paddle.
-            updateVelocity(topPaddle.x);
+            freezeBall();
+            // updateVelocity(topPaddle.x);
         } else if (that.isMovingDown() && that.y + Ball.HEIGHT/2 > Pong.HEIGHT - Paddle.HEIGHT) {
             // Chance for ball to collide with bottom paddle.
-            updateVelocity(bottomPaddle.x);
+            freezeBall();
+            // updateVelocity(bottomPaddle.x);
         }
+    }
+
+    function freezeBall(){
+        that.vx = 0;
+        that.vy = 0;
     }
 
     // the following snippet defines an appropriate high resolution 

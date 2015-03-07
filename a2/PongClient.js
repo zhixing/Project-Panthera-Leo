@@ -27,6 +27,8 @@ function PongClient() {
     var lastUpdatePaddleAt = 0; // timestamp of last recv update
     var lastUpdateVelocityAt = 0; // timestamp of last recv update
 
+    var LOCAL_LAG = 200;
+    var PERCENTAGE_LOCAL_DELAY = 0.4;
     /*
      * private method: showMessage(location, msg)
      *
@@ -100,18 +102,20 @@ function PongClient() {
                     myPaddle.y = message.myPaddleY;
                     opponentPaddle.x = message.opponentPaddleX;
                     opponentPaddle.y = message.opponentPaddleY;
+                
                     break;
                 case "updateVelocity": 
                     var t = message.timestamp;
                     if (t < lastUpdateVelocityAt)
                         break;
                     lastUpdateVelocityAt = t;
-                    ball.vx = message.ballVX;
-                    ball.vy = message.ballVY;
+                    // ball.vx = message.ballVX;
+                    // ball.vy = message.ballVY;
+                    computeBallVelocity(message.ballX, message.ballY, message.ballVX, message.ballVY);             
                     // Periodically resync ball position to prevent error
                     // in calculation to propagate.
-                    ball.x = message.ballX;
-                    ball.y = message.ballY;
+                    // ball.x = message.ballX;
+                    // ball.y = message.ballY;
                     break;
                 case "outOfBound": 
                     ball.reset();
@@ -125,6 +129,67 @@ function PongClient() {
         } catch (e) {
             console.log("Failed to connect to " + "http://" + Pong.SERVER_NAME + ":" + Pong.PORT);
         }
+    }
+
+    function computeBallVelocity(nPositionX, nPositionY, nVelocityX, nVelocityY) {
+        var t, collideX, collideY;
+        if (nVelocityX < 0 && nVelocityY < 0) {
+            if ((nPositionX - Ball.WIDTH/2)/-nVelocityX < (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2) /-nVelocityY) {
+                t = (nPositionX - Ball.WIDTH/2)/-nVelocityX;
+                collideX = Ball.WIDTH/2;
+                collideY = nPositionY + nVelocityY * t;
+            } else {
+                t = (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/-nVelocityY;
+                collideX = nPositionX + nVelocityX * t;
+                collideY = Paddle.HEIGHT + Ball.HEIGHT/2;
+            }
+        } else if (nVelocityX < 0 && nVelocityY > 0) { //nVelocityY can never be 0;
+            if ((nPositionX - Ball.WIDTH/2)/-nVelocityX < (Pong.HEIGHT - nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2) /nVelocityY) {
+                t = (nPositionX - Ball.WIDTH/2)/-nVelocityX;
+                collideX = Ball.WIDTH/2;
+                collideY = nPositionY + nVelocityY * t;
+            } else {
+                t = (Pong.HEIGHT - nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/nVelocityY;
+                collideX = nPositionX + nVelocityX * t;
+                collideY = Pong.HEIGHT - Paddle.HEIGHT - Ball.HEIGHT/2;
+            }
+
+        } else if (nVelocityX >=0 && nVelocityY < 0) {
+            if (nVelocityX == 0) {
+                t = (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/-nVelocityY;
+                collideX = nPositionX;
+                collideY = Paddle.HEIGHT + Ball.HEIGHT/2;
+            } else {
+                if ((Pong.WIDTH - nPositionX - Ball.WIDTH/2)/nVelocityX < (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2) /-nVelocityY) {
+                    t = (Pong.WIDTH - nPositionX - Ball.WIDTH/2)/nVelocityX;
+                    collideX = Pong.WIDTH - Ball.WIDTH/2;
+                    collideY = nPositionY + nVelocityY * t;
+                } else {
+                    t = (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/-nVelocityY;
+                    collideX = nPositionX + nVelocityX * t;
+                    collideY = Paddle.HEIGHT + Ball.HEIGHT/2;
+                }
+            }
+        } else {
+            if (nVelocityX == 0) {
+                t = (Pong.HEIGHT - nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/nVelocityY;
+                collideX = nPositionX;
+                collideY = Pong.WIDTH - Paddle.HEIGHT - Ball.HEIGHT/2;
+            } else {
+                if ((Pong.WIDTH - nPositionX - Ball.WIDTH/2)/nVelocityX < (Pong.HEIGHT - nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2) /nVelocityY) {
+                    t = (Pong.WIDTH - nPositionX - Ball.WIDTH/2)/nVelocityX;
+                    collideX = Pong.WIDTH - Ball.WIDTH/2;
+                    collideY = nPositionY + nVelocityY * t;
+                } else {
+                    t = (Pong.HEIGHT - nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2)/nVelocityY;
+                    collideX = nPositionX + nVelocityX * t;
+                    collideY = Pong.HEIGHT - Paddle.HEIGHT - Ball.HEIGHT/2;
+                }
+            }
+        }
+
+        ball.vx = (collideX - ball.x)/t;
+        ball.vy = (collideY - ball.y)/t;
     }
 
     /*
@@ -181,8 +246,8 @@ function PongClient() {
         var newMouseY = e.pageY - canvasMinY;
 
         // Short circuiting the paddle movement, with a 
-        // local lag of 100ms. 
-        setTimeout(function() {myPaddle.x = newMouseX;}, 100);
+        // local lag. 
+        setTimeout(function() {myPaddle.x = newMouseX;}, Math.min(PERCENTAGE_LOCAL_DELAY * delay, LOCAL_LAG));
  
         // Send event to server
         sendToServer({type:"move", x: newMouseX});
