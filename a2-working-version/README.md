@@ -1,5 +1,6 @@
 # Two-Player Pong
-### A CS4344 Assignment
+### A CS4344 Assignment 2
+# Qing Cheng (A0091747W) and Yang Zhixing (A0091726B)
 
 ## Introduction
 This folder contains the code for a two-player Pong game, implemented with Javascript and HTML5.  The server runs on ```node.js``` and serves data with ```express```.  Communication is done through ```sockjs```.  

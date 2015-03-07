@@ -28,7 +28,7 @@ function PongClient() {
     var lastUpdateVelocityAt = 0; // timestamp of last recv update
 
     var LOCAL_LAG = 200;
-    var PERCENTAGE_LOCAL_DELAY = 0.4;
+    var PERCENTAGE_LOCAL_DELAY = 0.8;
     /*
      * private method: showMessage(location, msg)
      *
