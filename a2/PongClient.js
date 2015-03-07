@@ -109,13 +109,7 @@ function PongClient() {
                     if (t < lastUpdateVelocityAt)
                         break;
                     lastUpdateVelocityAt = t;
-                    var fromMe;
-                    if ((message.ballVY < 0 && myPaddle.y < opponentPaddle.y) || (message.ballVY > 0 && myPaddle.y > opponentPaddle.y)) {//Opponent shoots the ball
-                        fromMe = false;
-                    } else {//I shoot the ball
-                        fromMe = true;
-                    }
-                    computeBallVelocity(message.ballX, message.ballY, message.ballVX, message.ballVY, fromMe);                                   
+                    computeBallVelocity(message.ballX, message.ballY, message.ballVX, message.ballVY);                                   
                     // Periodically resync ball position to prevent error
                     // in calculation to propagate.
                     // ball.x = message.ballX;
@@ -135,8 +129,13 @@ function PongClient() {
         }
     }
 
-    function computeBallVelocity(nPositionX, nPositionY, nVelocityX, nVelocityY, fromMe) {
-        var t, collideX, collideY;
+    function computeBallVelocity(nPositionX, nPositionY, nVelocityX, nVelocityY) {
+        var t, collideX, collideY, fromMe;
+        if ((nVelocityY < 0 && myPaddle.y < opponentPaddle.y) || (nVelocityY > 0 && myPaddle.y > opponentPaddle.y)) {//Opponent shoots the ball
+            fromMe = false;
+        } else {//I shoot the ball
+            fromMe = true;
+        }
         if (nVelocityX < 0 && nVelocityY < 0) {
             if ((nPositionX - Ball.WIDTH/2)/-nVelocityX < (nPositionY - Paddle.HEIGHT - Ball.HEIGHT/2) /-nVelocityY) {
                 t = (nPositionX - Ball.WIDTH/2)/-nVelocityX;
