@@ -366,10 +366,10 @@ function PongClient() {
         ball.updatePosition();
         if (myPaddle.y < Paddle.HEIGHT) {
             // my paddle is on top
-            ball.checkForBounce(myPaddle, opponentPaddle);
+            ball.checkForBounceForGeneral(myPaddle, opponentPaddle, false);
         } else {
             // my paddle is at the bottom
-            ball.checkForBounce(opponentPaddle, myPaddle);
+            ball.checkForBounceForGeneral(opponentPaddle, myPaddle, false);
         }
         render();
     }

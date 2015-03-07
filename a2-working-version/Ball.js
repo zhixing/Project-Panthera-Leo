@@ -135,14 +135,12 @@ function Ball() {
         return (that.vx > 0);
     }
 
-    /*
-     * priviledged method: checkForBounce(topPaddle, bottomPaddle)
-     *
-     * Called to calculate the new position of the ball.  Update 
-     * velocity if the ball hits the paddle.
-     */
-    this.checkForBounce = function(topPaddle, bottomPaddle) {
+    function freezeBall(){
+        that.vx = 0;
+        that.vy = 0;
+    }
 
+    this.checkForBounceForGeneral = function(topPaddle, bottomPaddle, isFromServer) {
         // Check for bouncing
         if ((that.isMovingLeft() && that.x <= Ball.WIDTH/2) || 
             (that.isMovingRight() && that.x >= Pong.WIDTH - Ball.WIDTH/2)) {
@@ -155,18 +153,30 @@ function Ball() {
             that.outOfBound = true;
         } else if (that.isMovingUp() && that.y - Ball.HEIGHT/2 < Paddle.HEIGHT) {
             // Chance for ball to collide with top paddle.
-            //updateVelocity(topPaddle.x);
-            freezeBall();
+            if (isFromServer) {
+                updateVelocity(topPaddle.x);
+            } else {
+                freezeBall();
+            }
+            
         } else if (that.isMovingDown() && that.y + Ball.HEIGHT/2 > Pong.HEIGHT - Paddle.HEIGHT) {
             // Chance for ball to collide with bottom paddle.
-            //updateVelocity(bottomPaddle.x);
-            freezeBall();
+            if (isFromServer) {
+                updateVelocity(bottomPaddle.x);
+            } else {
+                freezeBall();
+            }
         }
     }
+    /*
+     * priviledged method: checkForBounce(topPaddle, bottomPaddle)
+     *
+     * Called to calculate the new position of the ball.  Update 
+     * velocity if the ball hits the paddle.
 
-    function freezeBall(){
-        that.vx = 0;
-        that.vy = 0;
+     */
+    this.checkForBounce = function(topPaddle, bottomPaddle) {
+        this.checkForBounceForGeneral(topPaddle, bottomPaddle, true);
     }
 
     // the following snippet defines an appropriate high resolution 
